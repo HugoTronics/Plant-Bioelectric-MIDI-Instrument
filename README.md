@@ -18,14 +18,7 @@ This repository contains the resources for a bio-sonification instrument: a syst
 - **Raspberry Pi Sound Engine**: Python MIDI bridge feeding a SunVox-based synthesizer for continuous, evolving sound.
 - **Autostart Setup**: Scripts for a fully headless installation that starts on boot.
 
-<!-- Replace this with your demo video, uploaded via a GitHub issue (drag & drop), then paste the resulting https://github.com/user-attachments/... link here -->
-
 https://github.com/user-attachments/assets/f6a21a1e-e71e-46a1-bcee-7d8a47434b49
-
-
-**demo.mp4**
-
-https://github.com/user-attachments/assets/REPLACE-WITH-YOUR-VIDEO-ID
 
 ## :link: Explore the Full Project
 
