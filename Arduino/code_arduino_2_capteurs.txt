@@ -1,0 +1,120 @@
+// Code Arduino aquisition du signal
+
+// entrée analogique
+const int capteur1Pin = A0; 
+const int capteur2Pin = A1;
+
+// variable filtre
+float f1 = 0;
+float f2 = 0;
+float alpha = 0.12;
+
+// seuil de déclenchement
+int seuil = 20;
+
+// accords musicaux
+int accords[4][3] = {
+  {48, 52, 55},
+  {55, 59, 62},
+  {57, 60, 64},
+  {53, 57, 60}
+};
+
+int chordCount = 4;
+int chord1 = 0;
+
+// etat note, off par défaut
+int lastChordNotes[3] = {-1, -1, -1};
+int lastNote2 = -1;
+
+// variables de calcul de temps entre les notes
+unsigned long lastTime1 = 0;
+unsigned long lastTime2 = 0;
+
+int interval1 = 1200;
+int interval2 = 1200;
+
+// timer de lecture des capteurs
+unsigned long lastRead = 0;
+int readInterval = 10; // 10 ms = 100 hz
+
+// fonction d'envoi message midi
+void sendMidi(byte status, byte note, byte vel) {
+  Serial.write(status);
+  Serial.write(note);
+  Serial.write(vel);
+}
+
+// setup, init port serie et lecture port analogique
+void setup() {
+  Serial.begin(115200);
+
+  f1 = analogRead(A0);
+  f2 = analogRead(A1);
+}
+
+void loop() {
+
+  unsigned long now = millis();
+
+  // lecture des capteurs
+  if (now - lastRead >= readInterval) {
+    lastRead = now;
+
+    int raw1 = analogRead(capteur1Pin);
+    int raw2 = analogRead(capteur2Pin);
+
+    f1 = alpha * raw1 + (1 - alpha) * f1;
+    f2 = alpha * raw2 + (1 - alpha) * f2;
+  }
+
+  // condition capteur 1
+  if (f1 > seuil && (now - lastTime1 > interval1)) {
+
+    // OFF ancien accord
+    for (int i = 0; i < 3; i++) {
+      if (lastChordNotes[i] != -1) {
+        sendMidi(0x80, lastChordNotes[i], 0);
+      }
+    }
+
+    // changement accord
+    if (random(0, 100) > 60) {
+      chord1 = (chord1 + 1) % chordCount;
+    }
+
+    // ON nouvel accord
+    for (int i = 0; i < 3; i++) {
+      int note = accords[chord1][i];
+      sendMidi(0x90, note, 90);
+      lastChordNotes[i] = note;
+    }
+
+    lastTime1 = now;
+  }
+
+  // condition capteur 2
+  if (f2 > seuil && (now - lastTime2 > interval2)) {
+
+    int n = accords[chord1][random(0, 3)] + 12;
+    int velocity = map(f2, 0, 700, 40, 110);
+    velocity = constrain(velocity, 40, 110);
+
+    // OFF
+    if (lastNote2 != -1) {
+      sendMidi(0x81, lastNote2, 0);
+    }
+
+    // ON
+    sendMidi(0x91, n, velocity);
+
+    lastNote2 = n;
+    lastTime2 = now;
+  }
+
+  // off note sécurité
+  if (f2 < seuil && lastNote2 != -1) {
+    sendMidi(0x81, lastNote2, 0);
+    lastNote2 = -1;
+  }
+}

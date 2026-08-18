@@ -1,0 +1,145 @@
+# Setup Guide
+
+## Plant Bioelectric MIDI Instrument — Installation and Configuration Guide
+
+### Platform: Raspberry Pi 4
+
+Before doing anything, it's strongly recommended to read the full project write-up first. It explains how the whole system works and helps avoid mistakes during assembly.
+
+Resources available in this repository:
+- **Documentation / schematics** → circuit schematics, Arduino pinout, component datasheets, notes and references
+- **Hardware list** → full list of required materials
+- **Code** → all scripts used in this guide
+
+---
+
+## Step 1 — Required Hardware
+
+Before starting the build, make sure you have all the required materials. The full list is available in `hardware_list.txt`.
+
+---
+
+## Step 2 — Assembling the Acquisition Stage
+
+Build the analog circuit on your breadboard using the resources in the documentation folder:
+
+- The circuit schematic
+- The Arduino pinout
+- The component datasheets
+
+---
+
+## Step 3 — Raspberry Pi Setup
+
+**System installation**
+
+Use Raspberry Pi Imager to flash your SD card. A Raspberry Pi 4 or 5 is recommended to avoid hardware compatibility issues. A Raspberry Pi 3 should also work, but requires extra steps — see the Troubleshooting section.
+
+**Software to install**
+
+- SunVox (MIDI synthesizer): https://warmplace.ru/soft/sunvox/
+- Arduino IDE: https://docs.arduino.cc/software/ide/
+
+---
+
+## Step 4 — Testing the Acquisition Stage
+
+Once the circuit is built, run the following tests:
+
+1. Connect the Arduino to the Raspberry Pi via USB.
+2. Open the Arduino IDE and check that the Arduino shows up on the serial ports (`ttyUSB0`).
+3. Upload the `detect_manu` sketch, then open the Serial Monitor. Curves should appear.
+4. Touch the sensors: the curves should change.
+
+   > For this test, temporarily remove the filters at the amplifier inputs — otherwise the curves may not react.
+
+5. Then test with a plant, filters in place. Note down the readings — they'll be used to set the note-triggering thresholds.
+6. Upload the `code_arduino_2_capteurs` sketch to the Arduino and adjust the thresholds if needed.
+
+---
+
+## Step 5 — Setting Up the Virtual MIDI Port
+
+1. Run the `bio_bridge.py` Python script on your Raspberry Pi.
+2. Touch the sensors.
+
+If the following message appears in the terminal, the connection is established:
+System 100% functional! Data received on...
+
+---
+
+## Step 6 — SunVox Configuration
+
+1. Launch SunVox.
+2. Go to Preferences > MIDI and add the "bio-arduino-midi" port.
+3. Click on one of the boxes in the interface (each box corresponds to an instrument).
+4. Configure the instruments you want: enable "Always On" and assign channel 1 or 2.
+
+   > The system only uses channels 1 and 2 out of the 16 available in the MIDI protocol.
+
+---
+
+## Step 7 — Testing the Full System
+
+Touch the sensors or test with your plant: the music should start playing. If everything works, move on to the next step.
+
+---
+
+## Step 8 — Autostart on Boot
+
+To make the system launch automatically on every boot:
+
+1. Save your SunVox configuration (e.g. to the Desktop).
+2. Create an `autostart` folder in the Raspberry Pi's home directory. `.desktop` files placed in this folder run automatically when the desktop launches.
+3. Create the `bio_instrument.desktop` file in that folder (available in the `code` folder).
+4. Create the `start_bio_instrument.sh` file with the provided code. In this file, add the path to your saved SunVox project before the `&`.
+
+The first file launches the second, which starts SunVox and then the Python script, waiting for the Arduino connection.
+
+   > The file paths provided in the scripts won't match your system. Update them before testing.
+
+---
+
+## Step 9 — Final Test
+
+1. Reboot the Raspberry Pi with the screen still connected.
+2. As soon as the desktop loads, SunVox and the Python script should start automatically.
+3. Check in the terminal that the connection is established.
+4. Test the sensors: the music should play!
+
+   > You can now test without the screen connected.
+
+---
+
+## Troubleshooting
+
+The system relies on a combination of software, libraries, and hardware whose versions can vary from one setup to another. Depending on your Raspberry Pi's OS version, its generation (Pi 3, 4, or 5), or updates to SunVox and the Arduino IDE, you may run into a few issues during installation.
+
+The issues listed below are the most commonly encountered. They don't mean your build is wrong — just that your setup needs a small adjustment.
+
+**USB serial connection error (Arduino)**
+
+Errors may appear in the Arduino IDE when uploading code or connecting.
+→ Disconnect the Arduino from the Raspberry Pi, wait 5 seconds, then reconnect.
+
+**USB port not found (ttyUSB0)**
+
+The Python script throws an error because it can't find the `ttyUSB0` port. This port is sometimes renamed (e.g. `ttyACM0`).
+→ Unplug the USB cable, wait, then plug it back in.
+→ If the issue persists, check the list of connected USB devices and update the port name directly in the scripts.
+
+**MIDI link issue at startup**
+
+If the MIDI link between the Python script and SunVox doesn't establish:
+→ Create a Python virtual environment in the script's location.
+→ Activate it and install the dependencies: `serial`, `rtmidi`, `time`.
+→ Add the environment activation step to `start_bio_instrument.sh`, before the call to the Python script.
+
+**No audio output from SunVox (script running fine)**
+
+SunVox may not automatically connect to the virtual MIDI port on startup, depending on the system or SunVox version.
+→ Reverse the launch order in the startup script: start the Python script first, wait for the USB link, then launch SunVox. On launch, SunVox will detect the port and connect to it automatically.
+
+---
+
+**Happy building!**

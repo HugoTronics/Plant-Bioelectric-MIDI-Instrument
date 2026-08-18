@@ -1,0 +1,53 @@
+// Variables globales
+float filteredValue = 0; // signal apres filtrage
+float alpha = 0.15;  // reactivite filtre EMA
+float runningAverage = 0; // moyenne pour suivre derive du signal
+float beta = 0.01;  // reactivite 1% pour ne pas suivre les variations fortes
+bool pulseDetected = false; // detection pulse
+
+void setup() {
+  Serial.begin(115200); // ouverture port serie pour midi
+}
+
+void loop() {
+  int rawValue = analogRead(A1); // lecture analog
+
+  // filtre EMA
+  filteredValue = (alpha * rawValue) + ((1.0 - alpha) * filteredValue);
+
+  // calcul de la moyenne basse du signal
+  runningAverage = (beta * rawValue) + ((1.0 - beta) * runningAverage);
+
+  // seuil dynamique 30 au dessus de la moyenne
+  float threshold = runningAverage + 30;
+
+  // Note ON
+  // si signal propre depasse seuil et battement pas déja détecté
+  if (filteredValue > threshold && !pulseDetected) {
+    sendMidiNote(0x90, 60, 100); // note on, do, force 100
+    pulseDetected = true;        // verrouillage pour ne pas envoyer la note en boucle
+  }
+
+  // Note OFF
+  // si le signal redescend sous le seuil
+  else if (filteredValue < threshold - 10 && pulseDetected) {
+    sendMidiNote(0x80, 60, 0);   // note off
+    pulseDetected = false;       // liberation verrouillage
+  }
+
+  Serial.print(rawValue);
+  Serial.print(" ");
+  Serial.print(filteredValue);
+  Serial.print(" ");
+  Serial.println(threshold);
+
+  delay(10); //frequence de mesure
+}
+
+// fonction d'envoie midi
+// format midi = 3 octets
+void sendMidiNote(byte status, byte note, byte velocity) {
+  Serial.write(status);   // 0x90 on, 0x80 off
+  Serial.write(note);     // hauteur note 0-127
+  Serial.write(velocity); // force note 0-127
+}

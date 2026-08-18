@@ -1,0 +1,21 @@
+# Hardware List
+
+## General Materials
+
+- **Arduino Nano** (or any other Arduino board — the code is lightweight and only uses the 5V, GND, A0 and A1 pins)
+- **USB cable** for the Arduino ↔ Raspberry Pi link
+- **Raspberry Pi + screen** (the screen is required to configure SunVox)
+- **2 sensors**: iron wire, 2 copper coins/plates, cotton, water (alternatively, 2 stripped ECG electrode pads)
+- **Speakers / loudspeakers**
+- **A plant**
+
+## Electronic Components
+
+- Breadboard + jumper wires
+- 2x CA3140 operational amplifiers
+- 2x 100 nF capacitors
+- 2x 330 nF capacitors
+- 2x 100 Ω resistors
+- 2x 10 kΩ resistors
+- 2x 100 kΩ resistors
+- 2x 4.7 MΩ resistors
