@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/f6a21a1e-e71e-46a1-bcee-7d8a47434b49
 For a detailed walkthrough of the project, including the analog design, signal processing algorithm, and testing results, check out the full article:
 
 <p align="center">
-    <a href="https://hugotronics.github.io/turning-a-plants-electrical-signals-into-music-a-bio-sonification-build/" target="_blank">
+    <a href="[https://hugotronics.github.io/turning-a-plants-electrical-signals-into-music-a-bio-sonification-build/](https://hugotronics.github.io/turning-a-plants-electrical-signals-into-music-diy-a-bio-sonification-build/)" target="_blank">
         <img src="https://img.shields.io/badge/Read%20the%20Full%20Article-%230084ff.svg?style=for-the-badge&logo=read-the-docs" alt="Read the Full Article">
     </a>
 </p>
